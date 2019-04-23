@@ -1,0 +1,2 @@
+./submitter -n 127.0.0.1:8765 -u 21700583 -k abcd1234 hello.c
+
