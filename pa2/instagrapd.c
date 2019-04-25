@@ -24,7 +24,7 @@ child_proc(int conn)
 
 	memset(&serv_addr, '0', sizeof(serv_addr)); 
 	serv_addr.sin_family = AF_INET; 
-	serv_addr.sin_port = htons(8764); 
+	serv_addr.sin_port = htons(8564); 
 	if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
 		perror("inet_pton failed : ") ; 
 		exit(EXIT_FAILURE) ;
@@ -34,7 +34,13 @@ child_proc(int conn)
 		perror("connect failed : ") ;
 		exit(EXIT_FAILURE) ;
 	}
-
+	//send mode
+	data = "0";
+	while (len > 0 && (s = send(sock_fd, data, len, 0)) > 0) {
+			data += s ;
+			len -= s ;
+	}
+	//send code
 	while ( (s = recv(conn, buf, 1023, 0)) > 0 ) {
 		buf[s] = 0x0 ;
 		if (data == 0x0) {
@@ -55,7 +61,36 @@ child_proc(int conn)
 	}
 
 	shutdown(sock_fd, SHUT_WR) ;
+	//send mode
+	data = "1";
+	while (len > 0 && (s = send(sock_fd, data, len, 0)) > 0) {
+			data += s ;
+			len -= s ;
+	}
+	//send input file
+	FILE *fp = fopen("1.in", "r");
+	data = 0x0 ;
 
+	if (fp == NULL){
+		printf("Error opening file\n");
+		exit(1);
+	}
+
+	while( fgets(buf, 1024, fp) != NULL) {
+		data = buf ;
+		len = strlen(buf) ;
+		s = 0 ;
+		while (len > 0 && (s = send(sock_fd, data, len, 0)) > 0) {
+			data += s ;
+			len -= s ;
+		}
+		
+	}	
+	fclose(fp);
+	shutdown(sock_fd, SHUT_WR) ;
+	//input file send finish
+
+	//output wating
 	char buffer[1024] ;
 	data = 0x0 ;
 	len = 0 ;
@@ -73,14 +108,19 @@ child_proc(int conn)
 		}
 
 	}
+	//output wating end
 	printf(">%s\n", data) ;
 	
 	orig = data ;
+	//start send to submitter
 	while (len > 0 && (s = send(conn, data, len, 0)) > 0) {
 		data += s ;
 		len -= s ;
 	}
 	shutdown(conn, SHUT_WR) ;
+	//end send to submitter
+
+	
 	if (orig != 0x0) 
 		free(orig) ;
 }
