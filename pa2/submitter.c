@@ -62,7 +62,7 @@ main (int argc, char **argv)
 	}
 
 	//scanf("%s", buffer) ;
-	FILE *fp = fopen("hello.c", "r");
+	FILE *fp = fopen(file, "r");
 
 	if (fp == NULL){
 		printf("Error opening file\n");
