@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 
 void
-child_proc(int conn)
+child_proc(int conn, char * w_ip, int w_port)
 {
     struct sockaddr_in serv_addr;
     int sock_fd ;
@@ -24,8 +24,8 @@ child_proc(int conn)
     
     memset(&serv_addr, '0', sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(8564);
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+    serv_addr.sin_port = htons(w_port);
+    if (inet_pton(AF_INET, w_ip, &serv_addr.sin_addr) <= 0) {
         perror("inet_pton failed : ") ;
         exit(EXIT_FAILURE) ;
     }
@@ -90,7 +90,7 @@ child_proc(int conn)
 }
 
 void
-child_proc2(int conn)
+child_proc2(int conn, char * w_ip, int w_port, char* file)
 {
     struct sockaddr_in serv_addr;
     int sock_fd ;
@@ -176,14 +176,45 @@ child_proc2(int conn)
 }
 
 int
-main(int argc, char const *argv[])
+main (int argc, char **argv)
 {
+    //this is for parameter
+    char w_ip[126] = {0};
+    int w_port=0;
+    int port=0;
+    char file[126] = {0};
+    char c;
+
+    //this is for code
     int listen_fd, new_socket ;
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
-    
     char buffer[1024] = {0};
+
+    //get parameter by opt
+    while ((c = getopt (argc, argv, "p:w:")) != -1){
+    switch (c){
+        case 'p'://get port of instagrapd
+            port = atoi(argv[2]);
+            printf("port %d\n",port);
+            break;
+        case 'w'://get worker ip and port
+            strcpy(w_ip,strtok(argv[4], ":"));
+            w_port = atoi(strtok(NULL, ":"));
+            printf("w_ip, w_port %s %d\n", w_ip, w_port);
+            break;
+            
+        }
+    }
+    //get file name
+    strcpy(file, argv[5]);
+    printf("file : %s\n", file);
+    //option getting end
+
+
+    
+    
     
     listen_fd = socket(AF_INET /*IPv4*/, SOCK_STREAM /*TCP*/, 0 /*IP*/) ;
     if (listen_fd == 0)  {
@@ -194,7 +225,7 @@ main(int argc, char const *argv[])
     memset(&address, '0', sizeof(address));
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY /* the localhost*/ ;
-    address.sin_port = htons(8765);
+    address.sin_port = htons(port);
     if (bind(listen_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("bind failed : ");
         exit(EXIT_FAILURE);
@@ -213,8 +244,8 @@ main(int argc, char const *argv[])
         }
         
         if (fork() > 0) {
-            child_proc(new_socket) ;
-            child_proc2(new_socket) ;
+            child_proc(new_socket,w_ip,w_port);
+            child_proc2(new_socket,w_ip,w_port,file);
         }
         else {
             close(new_socket) ;

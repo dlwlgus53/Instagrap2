@@ -1,5 +1,8 @@
 fuser -k -n tcp 8080
+
 ./submitter -n 127.0.0.1:8765 -u 21700583 -k abcd1234 add.c
+./instagrapd -p 8765 -w 127.0.0.1:8564 ./testcase
+./worker -p 8564
 
     dup2(fileno(someopenfile), STDIN_FILENO);
     dup2(fileno(someotherfile), STDOUT_FILENO);
