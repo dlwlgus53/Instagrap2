@@ -184,34 +184,13 @@ main (int argc, char **argv)
     int port=0;
     char file[126] = {0};
     char c;
-
+    
     //this is for code
     int listen_fd, new_socket ;
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
     char buffer[1024] = {0};
-    
-    //get parameter by opt
-    while ((c = getopt (argc, argv, "p:w:")) != -1){
-        switch (c){
-            case 'p'://get port of instagrapd
-                port = atoi(argv[2]);
-                break;
-            case 'w'://get worker ip and port
-                strcpy(w_ip,strtok(argv[4], ":"));
-                w_port = atoi(strtok(NULL, ":"));
-                break;
-                
-        }
-    }
-    //get file name
-    strcpy(file, argv[5]);
-    //option getting end
-    
-    
-    
-    
     
     //get parameter by opt
     while ((c = getopt (argc, argv, "p:w:")) != -1){
@@ -230,7 +209,6 @@ main (int argc, char **argv)
     }
     //get file name
     strcpy(file, argv[5]);
-    printf("file : %s\n", file);
     //option getting end
     
     
