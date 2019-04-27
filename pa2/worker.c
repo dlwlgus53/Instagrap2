@@ -41,13 +41,6 @@ child_proc(int conn)
     printf("mode : %c\n", mode);
     //mode bit 이랑 code는 shutdown 하지말고 기다리게 하자..
     code = data;
-//    while (len > 0 && (s = send(conn, data, len, 0)) > 0) {
-//        data += s ;
-//        len -= s ;
-//    }
-//    shutdown(conn, SHUT_WR) ;
-//
-    
     data = 0x0;
     len=0;
     
