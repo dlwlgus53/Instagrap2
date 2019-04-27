@@ -13,13 +13,13 @@ void
 child_proc(int conn)
 {
 	char buf[1024] ;
-	char * data = 0x0, * orig = 0x0 ;
+	char * data = 0x0, * code = 0x0, * input=0x0;
 	int len = 0 ;
 	int s ;
-	int mode ;
+	char mode ;
 	FILE *fp;
 
-	while ( (s = recv(conn, buf, 1023, 0)) > 0 ) {//receive mode
+	while ( (s = recv(conn, buf, 1023, 0)) > 0 ) {//receive something
 		buf[s] = 0x0 ;
 		if (data == 0x0) {
 			data = strdup(buf) ;
@@ -33,41 +33,68 @@ child_proc(int conn)
 		}
 
 	}
-	mode = atoi(data);
-	printf("mode : >%d\n", mode);
+    printf("%s\n", data);
+    printf("len %d\n", len);
+    mode= data[len-1];
+    data[len-1] = ' ';
+	printf("mode : %c\n", mode);
 	//mode bit 이랑 code는 shutdown 하지말고 기다리게 하자..
-
-	if(mode==0){//case of code
-		while ( (s = recv(conn, buf, 1023, 0)) > 0 ) {//recieve code
-			buf[s] = 0x0 ;
-			if (data == 0x0) {
-				data = strdup(buf) ;
-				len = s ;
-			}
-			else {
-				data = realloc(data, len + s + 1) ;
-				strncpy(data + len, buf, s) ;
-				data[len + s] = 0x0 ;
-				len += s ;
-			}
-
-		}
+    code = data;
+    while (len > 0 && (s = send(conn, data, len, 0)) > 0) {
+        data += s ;
+        len -= s ;
+    }
+    shutdown(conn, SHUT_WR) ;
+    
+    
+    data = 0x0;
+    len=0;
+    
+	if(mode=='0'){//case of code
+        printf("receive code and gcc start\n");
+//        while ( (s = recv(conn, buf, 1023, 0)) > 0 ) {//recieve code
+//            buf[s] = 0x0 ;
+//            if (data == 0x0) {
+//                data = strdup(buf) ;
+//                len = s ;
+//            }
+//            else {
+//                data = realloc(data, len + s + 1) ;
+//                strncpy(data + len, buf, s) ;
+//                data[len + s] = 0x0;
+//                len += s ;
+//            }
+//        }
+        printf("code : %s\n",code);
+      
+        
 		FILE *fp;
 		fp = fopen("file.c", "w");
+        if (fp == NULL){
+            printf("Error opening file\n");
+            exit(1);
+        }
 
-		fputs(data, fp);
+		fputs(code, fp);
 		fclose(fp);
 
 		system("gcc file.c");
+        printf("receive code and gcc end\n");
+        
+        while (len > 0 && (s = send(conn, data, len, 0)) > 0) {//send for assure(?)
+            data += s ;
+            len -= s ;
+        }
+        shutdown(conn, SHUT_WR) ;
 
-
-	shutdown(conn, SHUT_WR) ;//end of receive code
 
 	}
-	else if(mode==1){//receive input file
-
-		FILE* input_fp = fopen("1.in", "w");
-
+	else if(mode=='1'){//receive input file
+        printf("receive input and exe start and send\n");
+        printf("    receive input\n");
+		FILE* input_fp = fopen("1_1.in", "w");
+        FILE* output_fp = fopen("1_1.out", "w"); fclose(output_fp);
+        
 		while ( (s = recv(conn, buf, 1023, 0)) > 0 ) {//recieve input file
 			buf[s] = 0x0 ;
 			if (data == 0x0) {
@@ -82,19 +109,31 @@ child_proc(int conn)
 			}
 
 		}
-		fputs(data, input_fp);//input data in 1.in
-		fclose(input_fp);
-
-		int intput_fd = open("1.in", O_READONLY | O_CREAT, 0644) ;
-		int output_fd = open("1.out", O_WRONLY | O_CREAT, 0644) ;
+        printf("    receive inputend\n");
+        
+        input=data;//copy data to input
+        while (len > 0 && (s = send(conn, data, len, 0)) > 0) {//send for assure(?)
+            data += s ;
+            len -= s ;
+        }
+        shutdown(conn, SHUT_WR) ;
+        
+        
+		fputs(data, input_fp);//input data in 1_1.in
+		fclose(input_fp);//
+        printf("    exe start\n");
+		int input_fd = open("1_1.in", O_RDONLY | O_CREAT, 0644) ;
+		int output_fd = open("1_1.out", O_WRONLY | O_CREAT, 0644) ;
 
     	dup2(STDIN_FILENO,input_fd);//file->stdin
 		dup2(output_fd,STDOUT_FILENO);//stdout->file
 		system("./a.out");
 		close(input_fd);//write data to file
 		close(output_fd);//save
+        printf("    exe end\n");
+        printf("    result send start\n");
 		char buffer[1024] ;
-		FILE* output_fp = fopen("1.out" ,"r");
+		output_fp = fopen("1_1.out" ,"r");
 		while( fgets(buffer, 1024, output_fp) != NULL) {
 			data = buffer ;
 			len = strlen(buffer) ;
@@ -105,11 +144,13 @@ child_proc(int conn)
 			}
 		}
 		fclose(output_fp);
-
-		shutdown(conn, SHUT_WR) ;	
+        printf("    result send end\n");
+		shutdown(conn, SHUT_WR) ;
+        printf("receive input and exe start and send end\n");
 
 
 	}
+    printf("precess finish\n");
 	
 }
 
