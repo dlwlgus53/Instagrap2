@@ -117,6 +117,10 @@ child_proc(int conn)
         
     }
     printf("send code end\n");
+<<<<<<< HEAD
+=======
+	
+>>>>>>> 15bb270d9eed773a5717770cf5f1afe00df14e19
     //send code end
     
 //    //send mode for input

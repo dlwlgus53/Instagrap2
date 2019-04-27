@@ -8,6 +8,7 @@
 #include <sys/fcntl.h> // for open
 #include <unistd.h> // for close
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 void
 child_proc(int conn)
@@ -78,7 +79,18 @@ child_proc(int conn)
 		fputs(code, fp);
 		fclose(fp);
 
-		system("gcc file.c");
+	//	system("gcc file.c");
+	int pid;
+	pid = fork();
+
+	if (pid == 0) {
+		execl("gcc", "gcc", "file.c", (char *)0x0);
+		exit(127);
+	} else {
+		int status;
+		waitpid(pid, &status, 0);
+		printf("child just ended");
+	}
         printf("receive code and gcc end\n");
         
         while (len > 0 && (s = send(conn, data, len, 0)) > 0) {//send for assure(?)
