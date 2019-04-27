@@ -117,6 +117,7 @@ child_proc(int conn)
         
     }
     printf("send code end\n");
+	
     //send code end
     
 //    //send mode for input
@@ -327,8 +328,9 @@ main(int argc, char const *argv[])
 		} 
 
 		if (fork() > 0) {
-			child_proc(new_socket) ;
-            child_proc2(new_socket) ;
+			child_proc(new_socket) ;//send code
+			
+            child_proc2(new_socket) ;//send input
 		}
 		else {
 			close(new_socket) ;
