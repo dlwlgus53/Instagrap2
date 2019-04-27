@@ -69,7 +69,6 @@ child_proc(int conn)
         //    system("gcc file.c");
         int pid;
         pid = fork();
-        
         if (pid == 0) {
             execl("gcc", "gcc", "file.c", (char *)0x0);
             exit(127);
