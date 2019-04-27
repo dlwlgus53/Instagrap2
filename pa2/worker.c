@@ -140,14 +140,24 @@ child_proc(int conn)
 }
 
 int
-main(int argc, char const *argv[])
+main (int argc, char **argv)
 {
     int listen_fd, new_socket ;
+    int port
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
-    
+    //get parameter
     char buffer[1024] = {0};
+        while ((c = getopt (argc, argv, "n")) != -1){
+        switch (c)
+        {
+            case 'n'://get port and ip
+                port = atoi(argv[2]);
+                break;                
+        }
+    }
+
     
     listen_fd = socket(AF_INET /*IPv4*/, SOCK_STREAM /*TCP*/, 0 /*IP*/) ;
     if (listen_fd == 0)  {
@@ -158,7 +168,7 @@ main(int argc, char const *argv[])
     memset(&address, '0', sizeof(address));
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY /* the localhost*/ ;
-    address.sin_port = htons(8564);
+    address.sin_port = htons(port);
     if (bind(listen_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("bind failed : ");
         exit(EXIT_FAILURE);
