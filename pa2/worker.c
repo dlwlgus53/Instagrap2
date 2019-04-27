@@ -90,6 +90,7 @@ child_proc(int conn)
         input=code;//copy data to input
         fputs(input, input_fp);//input data in 1_1.in
         fclose(input_fp);//
+        
         printf("    exe start\n");
         
         int pid;
@@ -143,21 +144,22 @@ int
 main (int argc, char **argv)
 {
     int listen_fd, new_socket ;
-    int port
+    int port;
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
+    char c;
     //get parameter
     char buffer[1024] = {0};
-        while ((c = getopt (argc, argv, "n")) != -1){
+    while ((c = getopt (argc, argv, "p")) != -1){
         switch (c)
         {
-            case 'n'://get port and ip
+            case 'p'://get port and ip
                 port = atoi(argv[2]);
-                break;                
+                break;
         }
     }
-
+    
     
     listen_fd = socket(AF_INET /*IPv4*/, SOCK_STREAM /*TCP*/, 0 /*IP*/) ;
     if (listen_fd == 0)  {
@@ -194,5 +196,6 @@ main (int argc, char **argv)
         }
     }
 }
+
 
 
