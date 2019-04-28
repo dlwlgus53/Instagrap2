@@ -96,10 +96,10 @@ child_proc(int conn)
         int pid;
         int input_fd;
         int output_fd;
+        input_fd = open("1_1.in", O_RDONLY | O_CREAT, 0644) ;
+        output_fd = open("1_1.out", O_WRONLY | O_CREAT, 0644) ;
         pid = fork();
         if (pid == 0) {
-            input_fd = open("1_1.in", O_RDONLY | O_CREAT, 0644) ;
-            output_fd = open("1_1.out", O_WRONLY | O_CREAT, 0644) ;
             printf("        child process\n");
             dup2(input_fd,STDIN_FILENO);//file->stdin
             dup2(output_fd,STDOUT_FILENO);//stdout->file
@@ -130,13 +130,15 @@ child_proc(int conn)
             
             printf("    from 1_1.out file %s\n",data);
             printf("    send start %s\n",data);
+            int n = 0;
             while (len > 0 && (s = send(conn, data, len, 0)) > 0) {
                 data += s ;
                 len -= s ;
+                n += s;
             }
             shutdown(conn, SHUT_WR) ;
             fclose(output_fp);
-            printf("    result send end\n");
+            printf("    result send end %d\n", n);
            
             printf("receive input and exe start and send end\n");
         }

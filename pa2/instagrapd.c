@@ -173,7 +173,7 @@ child_proc2(int conn, char * w_ip, int w_port, char* folder, int n)
     printf("wating for recv\n");
     while(data==NULL){
         while ((s = recv(sock_fd, buffer, 1023, 0)) > 0 ) {
-            printf("?");
+            printf("result: %s\n", buffer);
             if(buffer[0]==0x0)  continue;
             buffer[s] = 0x0 ;
             if (data == 0x0) {
@@ -187,6 +187,7 @@ child_proc2(int conn, char * w_ip, int w_port, char* folder, int n)
                 len += s ;
             }
         }
+        len = strlen(data);
     }
     printf("send input and wait output end\n");
 
@@ -317,7 +318,7 @@ main (int argc, char **argv)
             int ans=0;
             char * code;
             code = recev_code(new_socket,w_ip,w_port);//recev code
-            for(int i=1;i<=4;i++){
+            for(int i=1;i<=10;i++){
                 sleep(1);
                 child_proc(new_socket,code,w_ip,w_port);//send code
                 sleep(1);
