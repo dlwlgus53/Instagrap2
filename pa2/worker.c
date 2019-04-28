@@ -112,32 +112,38 @@ child_proc(int conn)
             printf("child just ended");
             close(input_fd);//write data to file
             close(output_fd);//save
-            ;
+            printf("    exe end\n");
+            printf("    result send start\n");
+            char buffer[1024] ;
+            output_fp = fopen("1_1.out" ,"r");
+            data = 0x0;len=0;
+            data==NULL;
+            while(data==NULL){
+                while( fgets(buffer, 1024, output_fp) != NULL) {
+                    printf("buffer : %s\n",buffer);
+                    if(buffer[0]==0x0)  continue;
+                    data = buffer ;
+                    len = strlen(buffer) ;
+                    s = 0 ;
+                }
+            }
+            
+            printf("    from 1_1.out file %s\n",data);
+            printf("    send start %s\n",data);
+            while (len > 0 && (s = send(conn, data, len, 0)) > 0) {
+                data += s ;
+                len -= s ;
+            }
+            shutdown(conn, SHUT_WR) ;
+            fclose(output_fp);
+            printf("    result send end\n");
+           
+            printf("receive input and exe start and send end\n");
         }
-        printf("    exe end\n");
-        printf("    result send start\n");
-        char buffer[1024] ;
-        output_fp = fopen("1_1.out" ,"r");
-        data = 0x0;len=0;
-        while( fgets(buffer, 1024, output_fp) != NULL) {
-            data = buffer ;
-            len = strlen(buffer) ;
-            s = 0 ;
+        printf("precess finish\n");
         }
-        printf("from 1_1.out file %s\n",data);
-        while (len > 0 && (s = send(conn, data, len, 0)) > 0) {
-            data += s ;
-            len -= s ;
-        }
-        fclose(output_fp);
-        printf("    result send end\n");
-        shutdown(conn, SHUT_WR) ;
-        printf("receive input and exe start and send end\n");
-        
-        
-    }
-    printf("precess finish\n");
-    
+       
+
 }
 
 int
@@ -190,6 +196,7 @@ main (int argc, char **argv)
         
         if (fork() > 0) {
             child_proc(new_socket) ;
+             close(new_socket) ;
         }
         else {
             close(new_socket) ;
